@@ -3,9 +3,9 @@ import requests
 from duolingo import Duolingo
 
 # 환경 변수에서 로그인 정보 가져오기
-DUOLINGO_USERNAME = os.getenv("yeseong9623")
-DUOLINGO_PASSWORD = os.getenv("962357841Ss@")
-WEBHOOK_URL = os.getenv("https://hooks.zapier.com/hooks/catch/21085754/28h11m3/")
+DUOLINGO_USERNAME = os.getenv("DUOLINGO_USERNAME")
+DUOLINGO_PASSWORD = os.getenv("DUOLINGO_PASSWORD")
+WEBHOOK_URL = os.getenv("WEBHOOK_URL")
 
 # 듀오링고 로그인
 lingo = Duolingo(DUOLINGO_USERNAME, DUOLINGO_PASSWORD)
