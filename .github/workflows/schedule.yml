@@ -1,30 +1,57 @@
-name: Duolingo Data to Zapier
+name: Send Duolingo Data to Zapier
 
 on:
-  schedule:
-    - cron: '0 1 * * *'  # 매일 오전 10시 (UTC 기준, 한국 시간은 UTC+9)
+  push:
+    branches:
+      - main
 
 jobs:
-  send_duolingo_data:
+  duolingo-to-zapier:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout Code
+    - name: Check out repository
       uses: actions/checkout@v3
 
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
-        python-version: '3.9'
+        python-version: "3.x"
 
-    - name: Install Dependencies
+    - name: Install dependencies
       run: |
-        pip install requests duolingo-api
+        python -m pip install --upgrade pip
+        pip install duolingo-api requests
 
-    - name: Run Script
+    - name: Run Duolingo script
       env:
         DUOLINGO_USERNAME: ${{ secrets.DUOLINGO_USERNAME }}
         DUOLINGO_PASSWORD: ${{ secrets.DUOLINGO_PASSWORD }}
-        WEBHOOK_URL: ${{ secrets.WEBHOOK_URL }}
+        ZAPIER_WEBHOOK_URL: ${{ secrets.ZAPIER_WEBHOOK_URL }}
       run: |
-        python duolingo_to_zapier.py
+        python <<EOF
+        import requests
+        from duolingo import Duolingo
+
+        # Duolingo login
+        username = "${{ secrets.DUOLINGO_USERNAME }}"
+        password = "${{ secrets.DUOLINGO_PASSWORD }}"
+        lingo = Duolingo(username, password)
+
+        # Fetch user data
+        user_info = lingo.get_user_info()
+        xp_today = user_info['xpGoalToday']
+        streak = user_info['site_streak']
+        goal_met = "Yes" if xp_today >= 10 else "No"
+
+        # Send to Zapier webhook
+        webhook_url = "${{ secrets.ZAPIER_WEBHOOK_URL }}"
+        payload = {
+            "date": requests.get("https://worldtimeapi.org/api/timezone/Etc/UTC").json()["datetime"][:10],
+            "xp_today": xp_today,
+            "streak": streak,
+            "goal_met": goal_met
+        }
+        response = requests.post(webhook_url, json=payload)
+        print(f"Webhook sent: {response.status_code}")
+        EOF
