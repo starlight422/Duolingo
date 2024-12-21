@@ -1,0 +1,30 @@
+name: Duolingo Data to Zapier
+
+on:
+  schedule:
+    - cron: '0 1 * * *'  # 매일 오전 10시 (UTC 기준, 한국 시간은 UTC+9)
+
+jobs:
+  send_duolingo_data:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+
+    - name: Install Dependencies
+      run: |
+        pip install requests duolingo-api
+
+    - name: Run Script
+      env:
+        DUOLINGO_USERNAME: ${{ secrets.DUOLINGO_USERNAME }}
+        DUOLINGO_PASSWORD: ${{ secrets.DUOLINGO_PASSWORD }}
+        WEBHOOK_URL: ${{ secrets.WEBHOOK_URL }}
+      run: |
+        python duolingo_to_zapier.py
